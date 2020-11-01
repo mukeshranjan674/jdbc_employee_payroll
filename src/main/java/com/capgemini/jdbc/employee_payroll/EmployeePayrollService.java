@@ -24,8 +24,14 @@ public class EmployeePayrollService {
 		}
 		return employeePayrollList;
 	}
-	
-	public void updateEmployeePayrollData(String sql) throws DBExceception {
+
+	public void updateEmployeePayrollData(String name, double salary) throws DBExceception {
+		String sql = "update payroll set net_pay = " + salary
+				+ " where emp_id = (select emp_id from employee where name = "+"'" + name +"'"+ ")";
+		this.updateEmployeePayrollData(sql);
+	}
+
+	private void updateEmployeePayrollData(String sql) throws DBExceception {
 		try {
 			new EmployeePayrollServiceDB().updateData(sql);
 		} catch (SQLException e) {
@@ -33,4 +39,17 @@ public class EmployeePayrollService {
 		}
 	}
 	
+	public void updateDateUsingPrepared(String name, double salary) throws DBExceception {
+		String sql = "update payroll set net_pay = " + salary
+				+ " where emp_id = (select emp_id from employee where name = "+"'" + name +"'"+ ")";
+		try {
+			this.updateDateUsingPrepared(sql);
+		} catch (SQLException e) {
+			throw new DBExceception("Unable to read", Type.WRONG_QUERY);
+		}
+	}
+	
+	private void updateDateUsingPrepared(String sql) throws SQLException {
+		new EmployeePayrollServiceDB().updateDataUsingPrepared(sql);
+	}
 }

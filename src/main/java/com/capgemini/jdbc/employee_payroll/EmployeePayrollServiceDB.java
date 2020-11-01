@@ -1,6 +1,7 @@
 package com.capgemini.jdbc.employee_payroll;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -26,9 +27,25 @@ public class EmployeePayrollServiceDB {
 		return employeePayrollList;
 	}
 	
+	public List<EmployeePayrollData> readDataThroughPreparedStatement() throws SQLException{
+		String sql = "select a.emp_id, a.name, b.net_pay from employee a, payroll b where a.emp_id = b.emp_id ";
+		List<EmployeePayrollData> employeePayrollDatas;
+		Connection connection = new EmployeePayrollDB().getConnection();
+		PreparedStatement preparedStatement = connection.prepareStatement(sql);
+		ResultSet resultSet = preparedStatement.executeQuery(sql);
+		
+		return null;
+	}
+	
 	public void updateData(String sql) throws SQLException {
 		Connection connection = new EmployeePayrollDB().getConnection();
 		Statement statement = connection.createStatement();
 		statement.execute(sql);
+	}
+	
+	public void updateDataUsingPrepared(String sql) throws SQLException {
+		Connection connection = new EmployeePayrollDB().getConnection();
+		PreparedStatement preparedStatement = connection.prepareStatement(sql);
+		preparedStatement.executeUpdate();
 	}
 }

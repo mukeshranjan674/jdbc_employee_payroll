@@ -30,14 +30,27 @@ public class EmployeePayrollDatabaseTest {
 	@Test
 	public void whenExcecutedDataShouldGetUpdatedInDatabase() {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-		String sql = "update payroll set net_pay = 3000000 where emp_id = (select emp_id from employee where name = 'Sita')";
 		List<EmployeePayrollData> employeePayrollDatas;
 		try {
-			employeePayrollService.updateEmployeePayrollData(sql);
+			employeePayrollService.updateEmployeePayrollData("Sita", 3000000);
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
 			assertEquals(3000000, employeePayrollDatas.get(2).getSalary(), 0.0);
 		} catch (DBExceception e) {
 		}
-
+	}
+	
+	/**
+	 * UC4
+	 */
+	@Test
+	public void whenExcecutedDataShouldGetUpdatedInDatabaseThroughPreparedStatement() {
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		List<EmployeePayrollData> employeePayrollDatas;
+		try {
+			employeePayrollService.updateDateUsingPrepared("Ram", 250000);
+			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
+			assertEquals(250000, employeePayrollDatas.get(0).getSalary(), 0.0);
+		} catch (DBExceception e) {
+		}
 	}
 }
