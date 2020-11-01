@@ -11,6 +11,10 @@ public class EmployeePayrollData {
 		this.salary = salary;
 	}
 
+	public double getSalary() {
+		return salary;
+	}
+
 	@Override
 	public String toString() {
 		return "id=" + id + ", name=" + name + ", salary=" + salary + "\n" ;

@@ -3,7 +3,6 @@ package com.capgemini.jdbc.employee_payroll;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 import com.capgemini.jdbc.employee_payroll.DBExceception.Type;
 
@@ -20,9 +19,18 @@ public class EmployeePayrollService {
 			try {
 				this.employeePayrollList = new EmployeePayrollServiceDB().readData();
 			} catch (SQLException e) {
-				throw new DBExceception("Unable to read", Type.WRONG_FILE);
+				throw new DBExceception("Unable to read", Type.WRONG_DATA);
 			}
 		}
 		return employeePayrollList;
 	}
+	
+	public void updateEmployeePayrollData(String sql) throws DBExceception {
+		try {
+			new EmployeePayrollServiceDB().updateData(sql);
+		} catch (SQLException e) {
+			throw new DBExceception("Unable to read", Type.WRONG_QUERY);
+		}
+	}
+	
 }

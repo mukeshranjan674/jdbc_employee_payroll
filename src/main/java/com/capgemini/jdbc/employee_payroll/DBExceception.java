@@ -3,7 +3,7 @@ package com.capgemini.jdbc.employee_payroll;
 public class DBExceception extends Exception {
 
 	public enum Type {
-		WRONG_FILE
+		WRONG_DATA, WRONG_QUERY 
 	}
 
 	public Type type;

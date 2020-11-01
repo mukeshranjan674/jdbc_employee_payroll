@@ -25,4 +25,10 @@ public class EmployeePayrollServiceDB {
 		}
 		return employeePayrollList;
 	}
+	
+	public void updateData(String sql) throws SQLException {
+		Connection connection = new EmployeePayrollDB().getConnection();
+		Statement statement = connection.createStatement();
+		statement.execute(sql);
+	}
 }
