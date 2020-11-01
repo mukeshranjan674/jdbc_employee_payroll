@@ -53,4 +53,15 @@ public class EmployeePayrollDatabaseTest {
 		} catch (DBExceception e) {
 		}
 	}
+	
+	@Test
+	public void givenNameShouldReturnAllTheRecords() {
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		List<EmployeePayrollData> employeePayrollDatas;
+		try {
+			employeePayrollDatas = employeePayrollService.readEmployeePayrollData("Ram");
+			assertEquals(1, employeePayrollDatas.size());
+		} catch (Exception e) {
+		}
+	}
 }
