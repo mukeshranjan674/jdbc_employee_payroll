@@ -1,6 +1,7 @@
 package com.capgemini.jdbc.employee_payroll;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,6 +38,15 @@ public class EmployeePayrollServiceDB {
 		return employeePayrollList;
 	}
 
+	public List<EmployeePayrollData> readData(Date date) throws SQLException {
+		String sql = "SELECT a.emp_id, a.name, b.net_pay from employee a, payroll b "
+				+ "where date_of_joining between date('" + date + "') and date(now()) and a.emp_id = b.emp_id";
+		Connection connection = new EmployeePayrollDB().getConnection();
+		PreparedStatement preparedStatement = connection.prepareStatement(sql);
+		ResultSet resultSet = preparedStatement.executeQuery();
+		return this.getEmployeePayrollData(resultSet);
+	}
+
 	public List<EmployeePayrollData> readDataThroughPreparedStatement(String name) throws SQLException {
 		List<EmployeePayrollData> employeePayrollDatas = new ArrayList<EmployeePayrollData>();
 		if (this.employeePayrollDataStatement == null) {
@@ -60,13 +70,13 @@ public class EmployeePayrollServiceDB {
 	}
 
 	private void getPreparedStatement(String name) {
-			String sql = "select a.emp_id, a.name, b.net_pay from employee a, payroll b where a.emp_id = b.emp_id and a.name = '"
-					+ name + "'";
-			Connection connection = new EmployeePayrollDB().getConnection();
-			try {
-				employeePayrollDataStatement = connection.prepareStatement(sql);
-			} catch (SQLException e) {
-			}
+		String sql = "select a.emp_id, a.name, b.net_pay from employee a, payroll b where a.emp_id = b.emp_id and a.name = '"
+				+ name + "'";
+		Connection connection = new EmployeePayrollDB().getConnection();
+		try {
+			employeePayrollDataStatement = connection.prepareStatement(sql);
+		} catch (SQLException e) {
+		}
 	}
 
 	private List<EmployeePayrollData> getEmployeePayrollData(ResultSet resultSet) {

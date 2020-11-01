@@ -1,6 +1,6 @@
 package com.capgemini.jdbc.employee_payroll;
 
-public class DBExceception extends Exception {
+public class DBException extends Exception {
 
 	public enum Type {
 		WRONG_DATA, WRONG_QUERY 
@@ -8,7 +8,7 @@ public class DBExceception extends Exception {
 
 	public Type type;
 
-	public DBExceception(String message, Type type) {
+	public DBException(String message, Type type) {
 		super(message);
 		this.type = type;
 	}
