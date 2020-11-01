@@ -4,6 +4,7 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.capgemini.jdbc.employee_payroll.DBException.Type;
 
@@ -14,6 +15,13 @@ public class EmployeePayrollService {
 		DB_IO
 	};
 
+	/**
+	 * UC2
+	 * 
+	 * @param dBService
+	 * @return
+	 * @throws DBException
+	 */
 	public List<EmployeePayrollData> readEmployeePayrollData(IOService dBService) throws DBException {
 		if (dBService.equals(IOService.DB_IO)) {
 			try {
@@ -25,6 +33,13 @@ public class EmployeePayrollService {
 		return employeePayrollList;
 	}
 
+	/**
+	 * UC4
+	 * 
+	 * @param name
+	 * @return
+	 * @throws DBException
+	 */
 	public List<EmployeePayrollData> readEmployeePayrollData(String name) throws DBException {
 		try {
 			return EmployeePayrollServiceDB.getInstance().readDataThroughPreparedStatement(name);
@@ -33,6 +48,13 @@ public class EmployeePayrollService {
 		}
 	}
 
+	/**
+	 * UC3
+	 * 
+	 * @param name
+	 * @param salary
+	 * @throws DBException
+	 */
 	public void updateEmployeePayrollData(String name, double salary) throws DBException {
 		String sql = "update payroll set net_pay = " + salary
 				+ " where emp_id = (select emp_id from employee where name = '" + name + "')";
@@ -47,28 +69,43 @@ public class EmployeePayrollService {
 		}
 	}
 
-	public void updateDateUsingPrepared(String name, double salary) throws DBException {
+	public void updateDataUsingPrepared(String name, double salary) throws DBException {
 		String sql = "update payroll set net_pay = " + salary
 				+ " where emp_id = (select emp_id from employee where name = '" + name + "')";
 		try {
-			this.updateDateUsingPrepared(sql);
+			EmployeePayrollServiceDB.getInstance().updateDataUsingPrepared(sql);
 		} catch (SQLException e) {
 			throw new DBException("Unable to read", Type.WRONG_QUERY);
 		}
 	}
 
-	private void updateDateUsingPrepared(String sql) throws SQLException {
-		EmployeePayrollServiceDB.getInstance().updateDataUsingPrepared(sql);
-	}
-
+	/**
+	 * UC5
+	 * 
+	 * @param date
+	 * @return
+	 * @throws DBException
+	 */
 	public List<EmployeePayrollData> readEmployeePayrollData(Date date) throws DBException {
-
 		try {
 			this.employeePayrollList = EmployeePayrollServiceDB.getInstance().readData(date);
 		} catch (SQLException e) {
 			throw new DBException("Unable to read", Type.WRONG_QUERY);
 		}
-
 		return employeePayrollList;
+	}
+
+	/**
+	 * UC6
+	 * 
+	 * @return
+	 * @throws DBException
+	 */
+	public Map<String, Map<Character, Double>> getDetails() throws DBException {
+		try {
+			return EmployeePayrollServiceDB.getInstance().getDetails();
+		} catch (SQLException e) {
+			throw new DBException("Unable to read", Type.WRONG_DATA);
+		}
 	}
 }
