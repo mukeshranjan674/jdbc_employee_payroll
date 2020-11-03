@@ -153,7 +153,7 @@ public class EmployeePayrollServiceDB {
 		return map;
 	}
 
-	/**UC7 UC8 UC9 
+	/**
 	 * @param id
 	 * @param name
 	 * @param gender
@@ -172,13 +172,40 @@ public class EmployeePayrollServiceDB {
 			Date date, double salary, String comp_name, int comp_id, String[] department, int[] dept_id) throws DBException {
 		int employeeId = 0;
 		EmployeePayrollData employeePayrollData = null;
-		String sql = String.format("insert into employee values (%s,%s,'%s','%s','%s','%s',date(now()))", 1, id, name,
-				gender, phone_no, address);
 		Connection connection = null;
+		
+		/**
+		 * Adding to company table
+		 */
 		try {
 			connection = new EmployeePayrollDB().getConnection();
 			connection.setAutoCommit(false);
+			Statement statement = connection.createStatement();
+			String sql_company = String.format("insert into company values (%s, '%s')", comp_id, comp_name);
+			statement.executeUpdate(sql_company);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		/**
+		 * Adding to department table
+		 */
+		try {
+			Statement statement = connection.createStatement();
+			for(int i = 0 ; i < dept_id.length ; i++) {
+				String sql_department = String.format("insert into department values (%s,'%s')", dept_id[i], department[i]);
+				statement.executeUpdate(sql_department);
+			}
+		} catch (SQLException e) {
+		}
+		
+		/**
+		 * Adding to employee table
+		 */
+		try {
 			Statement statement_employee = connection.createStatement();
+			String sql = String.format("insert into employee values (%s,%s,'%s','%s','%s','%s',date(now()))", 
+																	 comp_id, id, name, gender, phone_no, address);
 			int rowAffected = statement_employee.executeUpdate(sql, statement_employee.RETURN_GENERATED_KEYS);
 		} catch (SQLException e) {
 			try {
@@ -189,6 +216,9 @@ public class EmployeePayrollServiceDB {
 			return employeePayrollData;
 		}
 
+		/**
+		 * Adding to payroll table
+		 */
 		double deductions = salary * 0.2;
 		double taxable_pay = salary - deductions;
 		double tax = taxable_pay * 0.1;
@@ -212,22 +242,9 @@ public class EmployeePayrollServiceDB {
 			}
 		}
 		
-		try {
-			Statement statement = connection.createStatement();
-			String sql_company = String.format("insert into company values (%s, '%s')", comp_id, comp_name);
-			statement.executeUpdate(sql_company);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		try {
-			Statement statement = connection.createStatement();
-			for(int i = 0 ; i < dept_id.length ; i++) {
-				String sql_department = String.format("insert into department values (%s,'%s')", dept_id[i], department[i]);
-				statement.executeUpdate(sql_department);
-			}
-		} catch (SQLException e) {
-		}
-		
+		/**
+		 * Adding to employee department table
+		 */
 		try {
 			Statement statement = connection.createStatement();
 			for(int i = 0 ; i < dept_id.length ; i++) {
@@ -242,6 +259,10 @@ public class EmployeePayrollServiceDB {
 				e1.printStackTrace();
 			}
 		}
+		
+		/**
+		 * committing the changes
+		 */
 		try {
 			connection.commit();
 		} catch (SQLException e) {

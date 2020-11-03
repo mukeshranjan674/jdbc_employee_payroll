@@ -28,7 +28,7 @@ public class EmployeePayrollDatabaseTest {
 		List<EmployeePayrollData> employeePayrollDatas;
 		try {
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-			assertEquals(4, employeePayrollDatas.size());
+			assertEquals(1, employeePayrollDatas.size());
 		} catch (DBException e) {
 		}
 	}
@@ -55,9 +55,9 @@ public class EmployeePayrollDatabaseTest {
 	public void whenExcecutedDataShouldGetUpdatedInDatabaseThroughPreparedStatement() {
 		List<EmployeePayrollData> employeePayrollDatas;
 		try {
-			employeePayrollService.updateDataUsingPrepared("Ram", 250000);
+			employeePayrollService.updateDataUsingPrepared("Sita", 250000);
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-			boolean result = employeePayrollService.checkInSyncWithDatabase("Ram");
+			boolean result = employeePayrollService.checkInSyncWithDatabase("Sita");
 			assertTrue(result);
 		} catch (DBException e) {
 		}
@@ -67,7 +67,7 @@ public class EmployeePayrollDatabaseTest {
 	public void givenNameShouldReturnAllTheRecords() {
 		List<EmployeePayrollData> employeePayrollDatas;
 		try {
-			employeePayrollDatas = employeePayrollService.readEmployeePayrollData("Ram");
+			employeePayrollDatas = employeePayrollService.readEmployeePayrollData("Sita");
 			assertEquals(1, employeePayrollDatas.size());
 		} catch (DBException e) {
 		}
@@ -82,7 +82,7 @@ public class EmployeePayrollDatabaseTest {
 		try {
 			Date date = Date.valueOf("2017-11-10");
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(date);
-			assertEquals(4, employeePayrollDatas.size());
+			assertEquals(1, employeePayrollDatas.size());
 		} catch (DBException e) {
 		}
 	}
@@ -121,9 +121,9 @@ public class EmployeePayrollDatabaseTest {
 		int[] dept_id = {01, 02};
 		try {
 			EmployeePayrollData employeePayrollData = employeePayrollService.addNewEmployee
-													  (1003, "Sita", 'M', "8585656235", "Jharkhand 898985", date, 3000000,
+													  (1003, "Sita", 'F', "8585656235", "Jharkhand 898985", date, 3000000,
 														"Capgemini", 111, departments, dept_id );
-			result = employeePayrollService.checkInSyncWithDatabase("Laxman");
+			result = employeePayrollService.checkInSyncWithDatabase("Sita");
 			assertTrue(result);
 		} catch (DBException e) {
 		}
