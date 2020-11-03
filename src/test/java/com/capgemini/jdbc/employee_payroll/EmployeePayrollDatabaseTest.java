@@ -6,8 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +28,7 @@ public class EmployeePayrollDatabaseTest {
 		List<EmployeePayrollData> employeePayrollDatas;
 		try {
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-			assertEquals(3, employeePayrollDatas.size());
+			assertEquals(4, employeePayrollDatas.size());
 		} catch (DBException e) {
 		}
 	}
@@ -44,7 +42,8 @@ public class EmployeePayrollDatabaseTest {
 		try {
 			employeePayrollService.updateEmployeePayrollData("Sita", 3000000);
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-			assertEquals(3000000, employeePayrollDatas.get(2).getSalary(), 0.0);
+			boolean result = employeePayrollService.checkInSyncWithDatabase("Sita");
+			assertTrue(result);
 		} catch (DBException e) {
 		}
 	}
@@ -58,7 +57,8 @@ public class EmployeePayrollDatabaseTest {
 		try {
 			employeePayrollService.updateDataUsingPrepared("Ram", 250000);
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-			assertEquals(250000, employeePayrollDatas.get(0).getSalary(), 0.0);
+			boolean result = employeePayrollService.checkInSyncWithDatabase("Ram");
+			assertTrue(result);
 		} catch (DBException e) {
 		}
 	}
@@ -82,7 +82,7 @@ public class EmployeePayrollDatabaseTest {
 		try {
 			Date date = Date.valueOf("2017-11-10");
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(date);
-			assertEquals(3, employeePayrollDatas.size());
+			assertEquals(4, employeePayrollDatas.size());
 		} catch (DBException e) {
 		}
 	}
@@ -111,14 +111,14 @@ public class EmployeePayrollDatabaseTest {
 	}
 	
 	/**
-	 * UC7
+	 * UC7 UC8
 	 */
 	@Test
 	public void givenEmployeeWhenAddedShouldGetAddedToTheDatabase() {
 		;
 		Date date = Date.valueOf("2020-11-03");
 		EmployeePayrollData employeePayrollData = employeePayrollService.addNewEmployee
-												  (1004, "Laxman", 'M', "8585656235", "Jharkhand 898985", date, 500000);
+												  (1003, "Sita", 'M', "8585656235", "Jharkhand 898985", date, 3000000);
 		try {
 			boolean result = employeePayrollService.checkInSyncWithDatabase("Laxman");
 			assertTrue(result);

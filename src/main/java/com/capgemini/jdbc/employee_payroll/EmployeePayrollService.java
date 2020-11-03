@@ -111,7 +111,7 @@ public class EmployeePayrollService {
 	}
 
 	/**
-	 * UC7
+	 * UC7 UC8
 	 * 
 	 * @param id
 	 * @param name
@@ -128,9 +128,8 @@ public class EmployeePayrollService {
 	}
 	
 	public boolean checkInSyncWithDatabase(String name) throws DBException {
-		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		boolean result = false;
-		List<EmployeePayrollData> employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
+		List<EmployeePayrollData> employeePayrollDatas = this.readEmployeePayrollData(IOService.DB_IO);
 		EmployeePayrollData data = employeePayrollDatas.stream()
 				   .filter(n -> n.getName().equals(name))
 				   .findAny()

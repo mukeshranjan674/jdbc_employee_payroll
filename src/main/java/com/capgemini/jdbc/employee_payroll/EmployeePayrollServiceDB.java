@@ -31,7 +31,7 @@ public class EmployeePayrollServiceDB {
 	 * @throws SQLException
 	 */
 	public List<EmployeePayrollData> readData() throws SQLException {
-		String sql = "select a.emp_id, a.name, b.net_pay from employee a, payroll b where a.emp_id = b.emp_id ";
+		String sql = "select a.emp_id, a.name, b.net_pay from employee a, payroll b where a.emp_id = b.emp_id";
 		Connection connection = new EmployeePayrollDB().getConnection();
 		Statement statement = connection.createStatement();
 		ResultSet resultSet = statement.executeQuery(sql);
@@ -151,21 +151,42 @@ public class EmployeePayrollServiceDB {
 		return map;
 	}
 
+	/**
+	 * UC7 UC8
+	 * 
+	 * @param id
+	 * @param name
+	 * @param gender
+	 * @param phone_no
+	 * @param address
+	 * @param date
+	 * @param salary
+	 * @return
+	 */
 	public EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no, String address,
-											  Date date, double salary) {
+			Date date, double salary) {
 		int employeeId = 0;
 		EmployeePayrollData employeePayrollData = null;
 		String sql = String.format("insert into employee values (%s,%s,'%s','%s','%s','%s',date(now()))", 1, id, name,
 				gender, phone_no, address);
-		String sql_salary = String.format("insert into payroll values (%s,%s,%s,%s,%s,%s)", id, salary, 0, 0, 0,
-				salary);
 		try (Connection connection = new EmployeePayrollDB().getConnection()) {
 			Statement statement_employee = connection.createStatement();
 			int rowAffected = statement_employee.executeUpdate(sql, statement_employee.RETURN_GENERATED_KEYS);
+
+		} catch (SQLException e) {
+		}
+
+		double deductions = salary * 0.2;
+		double taxable_pay = salary - deductions;
+		double tax = taxable_pay * 0.1;
+		double net_pay = taxable_pay - tax;
+		String sql_salary = String.format("insert into payroll values (%s,%s,%s,%s,%s,%s)", id, salary, deductions,
+				taxable_pay, tax, net_pay);
+		try (Connection connection = new EmployeePayrollDB().getConnection()) {
 			Statement statement_salary = connection.createStatement();
-			statement_salary.executeUpdate(sql_salary);
+			int rowAffected = statement_salary.executeUpdate(sql_salary);
 			if (rowAffected == 1) {
-				ResultSet resultSet = statement_employee.getGeneratedKeys();
+				ResultSet resultSet = statement_salary.getGeneratedKeys();
 				if (resultSet.next())
 					employeeId = resultSet.getInt(2);
 				employeePayrollData = new EmployeePayrollData(employeeId, name, salary);
