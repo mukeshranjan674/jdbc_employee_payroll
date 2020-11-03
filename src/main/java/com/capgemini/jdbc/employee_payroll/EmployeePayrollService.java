@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.capgemini.jdbc.employee_payroll.DBException.Type;
+import com.capgemini.jdbc.employee_payroll.EmployeePayrollService.IOService;
 
 public class EmployeePayrollService {
 	private List<EmployeePayrollData> employeePayrollList = new ArrayList<EmployeePayrollData>();
@@ -107,5 +108,35 @@ public class EmployeePayrollService {
 		} catch (SQLException e) {
 			throw new DBException("Unable to read", Type.WRONG_DATA);
 		}
+	}
+
+	/**
+	 * UC7
+	 * 
+	 * @param id
+	 * @param name
+	 * @param gender
+	 * @param phone_no
+	 * @param address
+	 * @param date
+	 * @param salary
+	 * @return
+	 */
+	public EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no, String address,
+			Date date, double salary) {
+		return EmployeePayrollServiceDB.getInstance().addNewEmployee(id, name, gender, phone_no, address, date, salary);
+	}
+	
+	public boolean checkInSyncWithDatabase(String name) throws DBException {
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		boolean result = false;
+		List<EmployeePayrollData> employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
+		EmployeePayrollData data = employeePayrollDatas.stream()
+				   .filter(n -> n.getName().equals(name))
+				   .findAny()
+				   .orElse(null);
+		if(data != null)
+			result = true;
+		return result;
 	}
 }

@@ -150,4 +150,28 @@ public class EmployeePayrollServiceDB {
 		}
 		return map;
 	}
+
+	public EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no, String address,
+											  Date date, double salary) {
+		int employeeId = 0;
+		EmployeePayrollData employeePayrollData = null;
+		String sql = String.format("insert into employee values (%s,%s,'%s','%s','%s','%s',date(now()))", 1, id, name,
+				gender, phone_no, address);
+		String sql_salary = String.format("insert into payroll values (%s,%s,%s,%s,%s,%s)", id, salary, 0, 0, 0,
+				salary);
+		try (Connection connection = new EmployeePayrollDB().getConnection()) {
+			Statement statement_employee = connection.createStatement();
+			int rowAffected = statement_employee.executeUpdate(sql, statement_employee.RETURN_GENERATED_KEYS);
+			Statement statement_salary = connection.createStatement();
+			statement_salary.executeUpdate(sql_salary);
+			if (rowAffected == 1) {
+				ResultSet resultSet = statement_employee.getGeneratedKeys();
+				if (resultSet.next())
+					employeeId = resultSet.getInt(2);
+				employeePayrollData = new EmployeePayrollData(employeeId, name, salary);
+			}
+		} catch (SQLException e) {
+		}
+		return employeePayrollData;
+	}
 }

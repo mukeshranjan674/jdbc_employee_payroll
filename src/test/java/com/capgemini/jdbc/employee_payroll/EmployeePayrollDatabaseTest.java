@@ -6,19 +6,27 @@ import static org.junit.Assert.assertTrue;
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.capgemini.jdbc.employee_payroll.EmployeePayrollService.IOService;
 
 public class EmployeePayrollDatabaseTest {
+	EmployeePayrollService employeePayrollService;
+	
+	@Before
+	public void setUp() {
+		employeePayrollService = new EmployeePayrollService();
+	}
 
 	/**
 	 * UC2
 	 */
 	@Test
 	public void whenReadFromDataBaseShouldReturnTheExactSalaries() {
-		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		List<EmployeePayrollData> employeePayrollDatas;
 		try {
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
@@ -32,7 +40,6 @@ public class EmployeePayrollDatabaseTest {
 	 */
 	@Test
 	public void whenExcecutedDataShouldGetUpdatedInDatabase() {
-		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		List<EmployeePayrollData> employeePayrollDatas;
 		try {
 			employeePayrollService.updateEmployeePayrollData("Sita", 3000000);
@@ -47,7 +54,6 @@ public class EmployeePayrollDatabaseTest {
 	 */
 	@Test
 	public void whenExcecutedDataShouldGetUpdatedInDatabaseThroughPreparedStatement() {
-		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		List<EmployeePayrollData> employeePayrollDatas;
 		try {
 			employeePayrollService.updateDataUsingPrepared("Ram", 250000);
@@ -59,7 +65,6 @@ public class EmployeePayrollDatabaseTest {
 
 	@Test
 	public void givenNameShouldReturnAllTheRecords() {
-		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		List<EmployeePayrollData> employeePayrollDatas;
 		try {
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData("Ram");
@@ -73,7 +78,6 @@ public class EmployeePayrollDatabaseTest {
 	 */
 	@Test
 	public void givenDateShouldReturnAllTheRecords() {
-		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		List<EmployeePayrollData> employeePayrollDatas;
 		try {
 			Date date = Date.valueOf("2017-11-10");
@@ -88,7 +92,6 @@ public class EmployeePayrollDatabaseTest {
 	 */
 	@Test
 	public void givenDbWhenPerformedArithmeticFunctionsShouldPerformTheSame() {
-		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		Map<String, Map<Character, Double>> employeePayrollDatas;
 		try {
 			employeePayrollDatas = employeePayrollService.getDetails();
@@ -102,6 +105,22 @@ public class EmployeePayrollDatabaseTest {
 							 employeePayrollDatas.get("max").get('M') == (250000)&&
 							 employeePayrollDatas.get("count").get('F') == (1)&&
 							 employeePayrollDatas.get("count").get('M') == (2);
+			assertTrue(result);
+		} catch (DBException e) {
+		}
+	}
+	
+	/**
+	 * UC7
+	 */
+	@Test
+	public void givenEmployeeWhenAddedShouldGetAddedToTheDatabase() {
+		;
+		Date date = Date.valueOf("2020-11-03");
+		EmployeePayrollData employeePayrollData = employeePayrollService.addNewEmployee
+												  (1004, "Laxman", 'M', "8585656235", "Jharkhand 898985", date, 500000);
+		try {
+			boolean result = employeePayrollService.checkInSyncWithDatabase("Laxman");
 			assertTrue(result);
 		} catch (DBException e) {
 		}
