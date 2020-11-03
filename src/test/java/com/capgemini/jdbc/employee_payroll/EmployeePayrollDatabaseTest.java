@@ -115,12 +115,12 @@ public class EmployeePayrollDatabaseTest {
 	 */
 	@Test
 	public void givenEmployeeWhenAddedShouldGetAddedToTheDatabase() {
-		;
 		Date date = Date.valueOf("2020-11-03");
-		EmployeePayrollData employeePayrollData = employeePayrollService.addNewEmployee
-												  (1003, "Sita", 'M', "8585656235", "Jharkhand 898985", date, 3000000);
+		boolean result;
 		try {
-			boolean result = employeePayrollService.checkInSyncWithDatabase("Laxman");
+			EmployeePayrollData employeePayrollData = employeePayrollService.addNewEmployee
+													  (1003, "Sita", 'M', "8585656235", "Jharkhand 898985", date, 3000000);
+			result = employeePayrollService.checkInSyncWithDatabase("Laxman");
 			assertTrue(result);
 		} catch (DBException e) {
 		}

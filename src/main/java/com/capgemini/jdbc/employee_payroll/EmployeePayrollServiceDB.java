@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.capgemini.jdbc.employee_payroll.DBException.Type;
+
 public class EmployeePayrollServiceDB {
 	private static EmployeePayrollServiceDB employeePayrollServiceDB;
 	private PreparedStatement employeePayrollDataStatement;
@@ -162,18 +164,27 @@ public class EmployeePayrollServiceDB {
 	 * @param date
 	 * @param salary
 	 * @return
+	 * @throws DBException
 	 */
 	public EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no, String address,
-			Date date, double salary) {
+			Date date, double salary) throws DBException {
 		int employeeId = 0;
 		EmployeePayrollData employeePayrollData = null;
 		String sql = String.format("insert into employee values (%s,%s,'%s','%s','%s','%s',date(now()))", 1, id, name,
 				gender, phone_no, address);
-		try (Connection connection = new EmployeePayrollDB().getConnection()) {
+		Connection connection = null;
+		try {
+			connection = new EmployeePayrollDB().getConnection();
+			connection.setAutoCommit(false);
 			Statement statement_employee = connection.createStatement();
 			int rowAffected = statement_employee.executeUpdate(sql, statement_employee.RETURN_GENERATED_KEYS);
-
 		} catch (SQLException e) {
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				throw new DBException("Insertion error", Type.WRONG_QUERY);
+			}
+			return employeePayrollData;
 		}
 
 		double deductions = salary * 0.2;
@@ -182,7 +193,7 @@ public class EmployeePayrollServiceDB {
 		double net_pay = taxable_pay - tax;
 		String sql_salary = String.format("insert into payroll values (%s,%s,%s,%s,%s,%s)", id, salary, deductions,
 				taxable_pay, tax, net_pay);
-		try (Connection connection = new EmployeePayrollDB().getConnection()) {
+		try {
 			Statement statement_salary = connection.createStatement();
 			int rowAffected = statement_salary.executeUpdate(sql_salary);
 			if (rowAffected == 1) {
@@ -192,6 +203,18 @@ public class EmployeePayrollServiceDB {
 				employeePayrollData = new EmployeePayrollData(employeeId, name, salary);
 			}
 		} catch (SQLException e) {
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				throw new DBException("Insertion error", Type.WRONG_QUERY);
+			}
+		} finally {
+			if (connection != null)
+				try {
+					connection.close();
+				} catch (SQLException e) {
+					throw new DBException("Connection not closed", Type.CONNECTION_ERROR);
+				}
 		}
 		return employeePayrollData;
 	}

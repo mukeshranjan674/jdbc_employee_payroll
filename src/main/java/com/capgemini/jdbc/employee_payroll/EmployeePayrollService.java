@@ -121,9 +121,10 @@ public class EmployeePayrollService {
 	 * @param date
 	 * @param salary
 	 * @return
+	 * @throws DBException 
 	 */
 	public EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no, String address,
-			Date date, double salary) {
+			Date date, double salary) throws DBException {
 		return EmployeePayrollServiceDB.getInstance().addNewEmployee(id, name, gender, phone_no, address, date, salary);
 	}
 	
