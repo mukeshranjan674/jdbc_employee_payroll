@@ -124,8 +124,9 @@ public class EmployeePayrollService {
 	 * @throws DBException 
 	 */
 	public EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no, String address,
-			Date date, double salary) throws DBException {
-		return EmployeePayrollServiceDB.getInstance().addNewEmployee(id, name, gender, phone_no, address, date, salary);
+			Date date, double salary, String comp_name, int comp_id, String[] department, int[] dept_id) throws DBException {
+		return EmployeePayrollServiceDB.getInstance().addNewEmployee
+								(id, name, gender, phone_no, address, date, salary, comp_name, comp_id, department, dept_id);
 	}
 	
 	public boolean checkInSyncWithDatabase(String name) throws DBException {

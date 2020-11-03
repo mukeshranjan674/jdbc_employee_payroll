@@ -111,15 +111,18 @@ public class EmployeePayrollDatabaseTest {
 	}
 	
 	/**
-	 * UC7 UC8
+	 * UC7 UC8 UC9
 	 */
 	@Test
 	public void givenEmployeeWhenAddedShouldGetAddedToTheDatabase() {
 		Date date = Date.valueOf("2020-11-03");
 		boolean result;
+		String[] departments = {"Sales", "Marketing"};
+		int[] dept_id = {01, 02};
 		try {
 			EmployeePayrollData employeePayrollData = employeePayrollService.addNewEmployee
-													  (1003, "Sita", 'M', "8585656235", "Jharkhand 898985", date, 3000000);
+													  (1003, "Sita", 'M', "8585656235", "Jharkhand 898985", date, 3000000,
+														"Capgemini", 111, departments, dept_id );
 			result = employeePayrollService.checkInSyncWithDatabase("Laxman");
 			assertTrue(result);
 		} catch (DBException e) {
