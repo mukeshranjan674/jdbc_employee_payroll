@@ -33,7 +33,8 @@ public class EmployeePayrollServiceDB {
 	 * @throws SQLException
 	 */
 	public List<EmployeePayrollData> readData() throws SQLException {
-		String sql = "select a.emp_id, a.name, b.net_pay from employee a, payroll b where a.emp_id = b.emp_id";
+		String sql = "select a.emp_id, a.comp_id, a.name, a.gender, a.address, a.phone_number,a.date_of_joining, b.net_pay "
+				+ "from employee a, payroll b where a.emp_id = b.emp_id";
 		Connection connection = new EmployeePayrollDB().getConnection();
 		Statement statement = connection.createStatement();
 		ResultSet resultSet = statement.executeQuery(sql);
@@ -106,13 +107,42 @@ public class EmployeePayrollServiceDB {
 		try {
 			while (resultSet.next()) {
 				int id = resultSet.getInt("emp_id");
+				int comp_id = resultSet.getInt("comp_id");
 				String name = resultSet.getString("name");
 				double salary = resultSet.getDouble("net_pay");
-				EmployeePayrollData data = new EmployeePayrollData(id, name, salary);
+				String address = resultSet.getString("address");
+				String phone_no = resultSet.getString("phone_number");
+				String gender = resultSet.getString("gender");
+				String date = resultSet.getString("date_of_joining");
+				EmployeePayrollData data = new EmployeePayrollData(id, comp_id, name, gender, address, phone_no, salary,
+						date);
 				employeePayrollDatas.add(data);
+			}
+
+			Connection connection = new EmployeePayrollDB().getConnection();
+			for (EmployeePayrollData e : employeePayrollDatas) {
+				String sql = String.format("select comp_name from company where comp_id = %s", e.getComp_id());
+				Statement statement = connection.createStatement();
+				ResultSet result = statement.executeQuery(sql);
+				if (result.next()) {
+					String comp_name = result.getString("comp_name");
+					e.setCompany_name(comp_name);
+				}
+				String sql_d = "select a.dept_name, b.emp_id from department a, employee_department b "
+						+ "where a.dept_id = b.dept_id";
+				Statement statement_d = connection.createStatement();
+				ResultSet resultSet_d = statement_d.executeQuery(sql_d);
+				List<String> departmentList = new ArrayList<>();
+				while (resultSet_d.next()) {
+					String department = resultSet_d.getString("dept_name");
+					departmentList.add(department);
+				}
+				String[] departments = departmentList.toArray(new String[0]);
+				e.setDepartment(departments);
 			}
 		} catch (SQLException e) {
 		}
+		System.out.println(employeePayrollDatas);
 		return employeePayrollDatas;
 	}
 
@@ -154,6 +184,8 @@ public class EmployeePayrollServiceDB {
 	}
 
 	/**
+	 * UC7 UC8 UC9 UC11
+	 * 
 	 * @param id
 	 * @param name
 	 * @param gender
@@ -169,11 +201,12 @@ public class EmployeePayrollServiceDB {
 	 * @throws DBException
 	 */
 	public EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no, String address,
-			Date date, double salary, String comp_name, int comp_id, String[] department, int[] dept_id) throws DBException {
+			Date date, double salary, String comp_name, int comp_id, String[] department, int[] dept_id)
+			throws DBException {
 		int employeeId = 0;
 		EmployeePayrollData employeePayrollData = null;
 		Connection connection = null;
-		
+
 		/**
 		 * Adding to company table
 		 */
@@ -181,31 +214,65 @@ public class EmployeePayrollServiceDB {
 			connection = new EmployeePayrollDB().getConnection();
 			connection.setAutoCommit(false);
 			Statement statement = connection.createStatement();
-			String sql_company = String.format("insert into company values (%s, '%s')", comp_id, comp_name);
-			statement.executeUpdate(sql_company);
+			List<EmployeePayrollData> list = this.readData();
+			boolean toInsert = true;
+			for (EmployeePayrollData e : list) {
+				if (e.getComp_id() == comp_id) {
+					toInsert = false;
+					break;
+				}
+			}
+			if (toInsert) {
+				String sql_company = String.format("insert into company values (%s, '%s')", comp_id, comp_name);
+				statement.executeUpdate(sql_company);
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		/**
 		 * Adding to department table
 		 */
 		try {
 			Statement statement = connection.createStatement();
-			for(int i = 0 ; i < dept_id.length ; i++) {
-				String sql_department = String.format("insert into department values (%s,'%s')", dept_id[i], department[i]);
-				statement.executeUpdate(sql_department);
+			List<EmployeePayrollData> list = this.readData();
+			Integer[] dept;
+			List<Integer> dept_idList = new ArrayList<>();
+			if(list != null) {
+				String sql = "select * from department";
+				ResultSet resultSet = statement.executeQuery(sql);
+				while(resultSet.next()) {
+					Integer d_id = resultSet.getInt("dept_id");
+					dept_idList.add(d_id);
+				}
+				dept = dept_idList.toArray(new Integer[0]);
+			}
+			
+			for (int index = 0; index < dept_id.length; index++) {
+				boolean toInsert = true;
+				for(Integer dep : dept_idList) {
+					if(dept_id[index] == dep) {
+						toInsert = false;
+						break;
+					}
+				}
+				if(toInsert == true) {
+					Statement statement_d = connection.createStatement();
+					String sql_department = String.format("insert into department values (%s,'%s')", dept_id[index],
+							department[index]);
+					statement_d.executeUpdate(sql_department);
+				}
 			}
 		} catch (SQLException e) {
 		}
-		
+
 		/**
 		 * Adding to employee table
 		 */
 		try {
 			Statement statement_employee = connection.createStatement();
-			String sql = String.format("insert into employee values (%s,%s,'%s','%s','%s','%s',date(now()))", 
-																	 comp_id, id, name, gender, phone_no, address);
+			String sql = String.format("insert into employee values (%s,%s,'%s','%s','%s','%s',date(now()))", comp_id,
+					id, name, gender, phone_no, address);
 			int rowAffected = statement_employee.executeUpdate(sql, statement_employee.RETURN_GENERATED_KEYS);
 		} catch (SQLException e) {
 			try {
@@ -241,14 +308,15 @@ public class EmployeePayrollServiceDB {
 				throw new DBException("Insertion error", Type.WRONG_QUERY);
 			}
 		}
-		
+
 		/**
 		 * Adding to employee department table
 		 */
 		try {
 			Statement statement = connection.createStatement();
-			for(int i = 0 ; i < dept_id.length ; i++) {
-				String sql_emp_department = String.format("insert into Employee_Department values (%s,%s)", id, dept_id[i]);
+			for (int i = 0; i < dept_id.length; i++) {
+				String sql_emp_department = String.format("insert into Employee_Department values (%s,%s)", id,
+						dept_id[i]);
 				statement.executeUpdate(sql_emp_department);
 			}
 		} catch (SQLException e) {
@@ -259,7 +327,7 @@ public class EmployeePayrollServiceDB {
 				e1.printStackTrace();
 			}
 		}
-		
+
 		/**
 		 * committing the changes
 		 */
@@ -267,7 +335,7 @@ public class EmployeePayrollServiceDB {
 			connection.commit();
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}finally {
+		} finally {
 			if (connection != null)
 				try {
 					connection.close();

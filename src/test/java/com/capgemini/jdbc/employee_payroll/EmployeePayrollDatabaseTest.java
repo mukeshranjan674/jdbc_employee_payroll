@@ -128,4 +128,23 @@ public class EmployeePayrollDatabaseTest {
 		} catch (DBException e) {
 		}
 	}
+	
+	/**
+	 * UC11
+	 */
+	@Test
+	public void givenNewEmployeeWhenAddedShouldGetAddedToTheDatabase() {
+		Date date = Date.valueOf("2020-11-03");
+		boolean result;
+		String[] departments = {"Sales",};
+		int[] dept_id = {01};
+		try {
+			EmployeePayrollData employeePayrollData = employeePayrollService.addNewEmployee
+													  (1003, "Ram", 'M', "8585656235", "Jharkhand 898985", date, 5200000,
+														"Microsoft", 112, departments, dept_id );
+			result = employeePayrollService.checkInSyncWithDatabase("Lata");
+			assertTrue(result);
+		} catch (DBException e) {
+		}
+	}
 }
