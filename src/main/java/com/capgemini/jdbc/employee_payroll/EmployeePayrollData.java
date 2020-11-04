@@ -47,6 +47,10 @@ public class EmployeePayrollData {
 		return salary;
 	}
 
+	public int getEmp_id() {
+		return emp_id;
+	}
+
 	public String getName() {
 		return name;
 	}

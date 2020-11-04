@@ -1,6 +1,7 @@
 package com.capgemini.jdbc.employee_payroll;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.Date;
@@ -28,7 +29,8 @@ public class EmployeePayrollDatabaseTest {
 		List<EmployeePayrollData> employeePayrollDatas;
 		try {
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-			assertEquals(1, employeePayrollDatas.size());
+			
+			assertEquals(2, employeePayrollDatas.size());
 		} catch (DBException e) {
 		}
 	}
@@ -82,7 +84,7 @@ public class EmployeePayrollDatabaseTest {
 		try {
 			Date date = Date.valueOf("2017-11-10");
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(date);
-			assertEquals(1, employeePayrollDatas.size());
+			assertEquals(2, employeePayrollDatas.size());
 		} catch (DBException e) {
 		}
 	}
@@ -95,16 +97,16 @@ public class EmployeePayrollDatabaseTest {
 		Map<String, Map<Character, Double>> employeePayrollDatas;
 		try {
 			employeePayrollDatas = employeePayrollService.getDetails();
-			boolean result = employeePayrollDatas.get("sum").get('F') == (3000000)&&
-							 employeePayrollDatas.get("sum").get('M') == (310000)&&
-							 employeePayrollDatas.get("avg").get('F') == (3000000)&&
-							 employeePayrollDatas.get("avg").get('M') == (155000)&&
-							 employeePayrollDatas.get("min").get('F') == (3000000)&&
-							 employeePayrollDatas.get("min").get('M') == (60000)&&
+			boolean result = employeePayrollDatas.get("sum").get('F') == (5880000)&&
+							 employeePayrollDatas.get("sum").get('M') == (3744000)&&
+							 employeePayrollDatas.get("avg").get('F') == (2940000)&&
+							 employeePayrollDatas.get("avg").get('M') == (3744000)&&
+							 employeePayrollDatas.get("min").get('F') == (2880000)&&
+							 employeePayrollDatas.get("min").get('M') == (3744000)&&
 							 employeePayrollDatas.get("max").get('F') == (3000000)&&
-							 employeePayrollDatas.get("max").get('M') == (250000)&&
-							 employeePayrollDatas.get("count").get('F') == (1)&&
-							 employeePayrollDatas.get("count").get('M') == (2);
+							 employeePayrollDatas.get("max").get('M') == (3744000)&&
+							 employeePayrollDatas.get("count").get('F') == (2)&&
+							 employeePayrollDatas.get("count").get('M') == (1);
 			assertTrue(result);
 		} catch (DBException e) {
 		}
@@ -144,6 +146,19 @@ public class EmployeePayrollDatabaseTest {
 														"Microsoft", 112, departments, dept_id );
 			result = employeePayrollService.checkInSyncWithDatabase("Lata");
 			assertTrue(result);
+		} catch (DBException e) {
+		}
+	}
+	
+	/**
+	 * UC12
+	 */
+	@Test
+	public void givenNameWhenDeletedShouldGetDeletedFromDatabase() {
+		try {
+			employeePayrollService.removeEmployee("Ram");
+			boolean result = employeePayrollService.checkInSyncWithDatabase("Ram");
+			assertFalse(result);
 		} catch (DBException e) {
 		}
 	}

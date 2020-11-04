@@ -121,24 +121,35 @@ public class EmployeePayrollService {
 	 * @param date
 	 * @param salary
 	 * @return
-	 * @throws DBException 
+	 * @throws DBException
 	 */
 	public EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no, String address,
-			Date date, double salary, String comp_name, int comp_id, String[] department, int[] dept_id) throws DBException {
-		return EmployeePayrollServiceDB.getInstance().addNewEmployee
-								(id, name, gender, phone_no, address, date, salary, comp_name, comp_id, department, dept_id);
+			Date date, double salary, String comp_name, int comp_id, String[] department, int[] dept_id)
+			throws DBException {
+		return EmployeePayrollServiceDB.getInstance().addNewEmployee(id, name, gender, phone_no, address, date, salary,
+				comp_name, comp_id, department, dept_id);
 	}
-	
+
 	public boolean checkInSyncWithDatabase(String name) throws DBException {
 		boolean result = false;
 		List<EmployeePayrollData> employeePayrollDatas = this.readEmployeePayrollData(IOService.DB_IO);
-		EmployeePayrollData data = employeePayrollDatas.stream()
-				   .filter(n -> n.getName().equals(name))
-				   .findAny()
-				   .orElse(null);
-		if(data != null)
+		EmployeePayrollData data = employeePayrollDatas.stream().filter(n -> n.getName().equals(name)).findAny()
+				.orElse(null);
+		if (data != null)
 			result = true;
 		System.out.println(employeePayrollDatas);
 		return result;
+	}
+
+	/**
+	 * UC12
+	 * 
+	 * @param name
+	 * @throws DBException
+	 */
+	public void removeEmployee(String name) throws DBException {
+		if (!this.checkInSyncWithDatabase(name))
+			throw new DBException("employee not found", Type.EMPLOYEE_NOT_FOUND);
+		EmployeePayrollServiceDB.getInstance().removeEmployee(name);
 	}
 }

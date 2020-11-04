@@ -34,7 +34,7 @@ public class EmployeePayrollServiceDB {
 	 */
 	public List<EmployeePayrollData> readData() throws SQLException {
 		String sql = "select a.emp_id, a.comp_id, a.name, a.gender, a.address, a.phone_number,a.date_of_joining, b.net_pay "
-				+ "from employee a, payroll b where a.emp_id = b.emp_id";
+				+ "from employee a, payroll b where a.emp_id = b.emp_id and a.is_active = true";
 		Connection connection = new EmployeePayrollDB().getConnection();
 		Statement statement = connection.createStatement();
 		ResultSet resultSet = statement.executeQuery(sql);
@@ -84,8 +84,11 @@ public class EmployeePayrollServiceDB {
 	 * @throws SQLException
 	 */
 	public List<EmployeePayrollData> readData(Date date) throws SQLException {
-		String sql = "SELECT a.emp_id, a.name, b.net_pay from employee a, payroll b "
-				+ "where date_of_joining between date('" + date + "') and date(now()) and a.emp_id = b.emp_id";
+		String sql = "select a.emp_id, a.comp_id, a.name, a.gender, a.address, a.phone_number,a.date_of_joining, b.net_pay "
+				+ "from employee a, payroll b where date_of_joining between date('" + date + "') and date(now()) and "
+				+ "a.emp_id = b.emp_id and a.is_active = true";
+		
+		
 		Connection connection = new EmployeePayrollDB().getConnection();
 		PreparedStatement preparedStatement = connection.prepareStatement(sql);
 		ResultSet resultSet = preparedStatement.executeQuery();
@@ -93,8 +96,9 @@ public class EmployeePayrollServiceDB {
 	}
 
 	private void getPreparedStatement(String name) {
-		String sql = "select a.emp_id, a.name, b.net_pay from employee a, payroll b where a.emp_id = b.emp_id and a.name = '"
-				+ name + "'";
+		String sql = "select a.emp_id, a.comp_id, a.name, a.gender, a.address, a.phone_number,a.date_of_joining, b.net_pay "
+				+ "from employee a, payroll b where a.name = '" + name+ "' and "
+				+ "a.emp_id = b.emp_id and a.is_active = true";
 		Connection connection = new EmployeePayrollDB().getConnection();
 		try {
 			employeePayrollDataStatement = connection.prepareStatement(sql);
@@ -128,8 +132,8 @@ public class EmployeePayrollServiceDB {
 					String comp_name = result.getString("comp_name");
 					e.setCompany_name(comp_name);
 				}
-				String sql_d = "select a.dept_name, b.emp_id from department a, employee_department b "
-						+ "where a.dept_id = b.dept_id";
+				String sql_d = String.format("select a.emp_id, b.dept_name from employee_department a, department b "
+						+ "where a.dept_id = b.dept_id and a.emp_id = %s", e.getEmp_id());
 				Statement statement_d = connection.createStatement();
 				ResultSet resultSet_d = statement_d.executeQuery(sql_d);
 				List<String> departmentList = new ArrayList<>();
@@ -238,25 +242,25 @@ public class EmployeePayrollServiceDB {
 			List<EmployeePayrollData> list = this.readData();
 			Integer[] dept;
 			List<Integer> dept_idList = new ArrayList<>();
-			if(list != null) {
+			if (list != null) {
 				String sql = "select * from department";
 				ResultSet resultSet = statement.executeQuery(sql);
-				while(resultSet.next()) {
+				while (resultSet.next()) {
 					Integer d_id = resultSet.getInt("dept_id");
 					dept_idList.add(d_id);
 				}
 				dept = dept_idList.toArray(new Integer[0]);
 			}
-			
+
 			for (int index = 0; index < dept_id.length; index++) {
 				boolean toInsert = true;
-				for(Integer dep : dept_idList) {
-					if(dept_id[index] == dep) {
+				for (Integer dep : dept_idList) {
+					if (dept_id[index] == dep) {
 						toInsert = false;
 						break;
 					}
 				}
-				if(toInsert == true) {
+				if (toInsert == true) {
 					Statement statement_d = connection.createStatement();
 					String sql_department = String.format("insert into department values (%s,'%s')", dept_id[index],
 							department[index]);
@@ -271,8 +275,10 @@ public class EmployeePayrollServiceDB {
 		 */
 		try {
 			Statement statement_employee = connection.createStatement();
-			String sql = String.format("insert into employee values (%s,%s,'%s','%s','%s','%s',date(now()))", comp_id,
-					id, name, gender, phone_no, address);
+			String sql = String.format("insert into employee"
+					+ "(comp_id,emp_id,name,gender,phone_number,address,date_of_joining) values (%s,%s,'%s',"
+					+ "'%s','%s','%s',date(now()))", 
+					comp_id, id, name, gender, phone_no, address);
 			int rowAffected = statement_employee.executeUpdate(sql, statement_employee.RETURN_GENERATED_KEYS);
 		} catch (SQLException e) {
 			try {
@@ -344,5 +350,21 @@ public class EmployeePayrollServiceDB {
 				}
 		}
 		return employeePayrollData;
+	}
+
+	/**
+	 * UC12
+	 * 
+	 * @param name
+	 */
+	public void removeEmployee(String name) {
+		String sql = String.format("update employee set is_active = %s where name = '%s'", false, name);
+		Connection connection = new EmployeePayrollDB().getConnection();
+		try {
+			Statement statement = connection.createStatement();
+			statement.execute(sql);
+		} catch (SQLException e) {
+		}
+
 	}
 }
