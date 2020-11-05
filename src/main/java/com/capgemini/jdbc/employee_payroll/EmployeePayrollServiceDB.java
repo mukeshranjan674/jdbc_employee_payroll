@@ -16,6 +16,7 @@ import com.capgemini.jdbc.employee_payroll.DBException.Type;
 public class EmployeePayrollServiceDB {
 	private static EmployeePayrollServiceDB employeePayrollServiceDB;
 	private PreparedStatement employeePayrollDataStatement;
+	private List<EmployeePayrollData> employeeList;
 
 	private EmployeePayrollServiceDB() {
 	}
@@ -24,6 +25,13 @@ public class EmployeePayrollServiceDB {
 		if (employeePayrollServiceDB == null)
 			employeePayrollServiceDB = new EmployeePayrollServiceDB();
 		return employeePayrollServiceDB;
+	}
+
+	public void loadData() {
+		try {
+			this.employeeList = this.readData();
+		} catch (SQLException e) {
+		}
 	}
 
 	/**
@@ -87,8 +95,7 @@ public class EmployeePayrollServiceDB {
 		String sql = "select a.emp_id, a.comp_id, a.name, a.gender, a.address, a.phone_number,a.date_of_joining, b.net_pay "
 				+ "from employee a, payroll b where date_of_joining between date('" + date + "') and date(now()) and "
 				+ "a.emp_id = b.emp_id and a.is_active = true";
-		
-		
+
 		Connection connection = new EmployeePayrollDB().getConnection();
 		PreparedStatement preparedStatement = connection.prepareStatement(sql);
 		ResultSet resultSet = preparedStatement.executeQuery();
@@ -97,7 +104,7 @@ public class EmployeePayrollServiceDB {
 
 	private void getPreparedStatement(String name) {
 		String sql = "select a.emp_id, a.comp_id, a.name, a.gender, a.address, a.phone_number,a.date_of_joining, b.net_pay "
-				+ "from employee a, payroll b where a.name = '" + name+ "' and "
+				+ "from employee a, payroll b where a.name = '" + name + "' and "
 				+ "a.emp_id = b.emp_id and a.is_active = true";
 		Connection connection = new EmployeePayrollDB().getConnection();
 		try {
@@ -146,7 +153,6 @@ public class EmployeePayrollServiceDB {
 			}
 		} catch (SQLException e) {
 		}
-		System.out.println(employeePayrollDatas);
 		return employeePayrollDatas;
 	}
 
@@ -207,9 +213,9 @@ public class EmployeePayrollServiceDB {
 	public EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no, String address,
 			Date date, double salary, String comp_name, int comp_id, String[] department, int[] dept_id)
 			throws DBException {
-		int employeeId = 0;
 		EmployeePayrollData employeePayrollData = null;
 		Connection connection = null;
+		System.out.println("\n" + name + " is being added\n");
 
 		/**
 		 * Adding to company table
@@ -218,14 +224,18 @@ public class EmployeePayrollServiceDB {
 			connection = new EmployeePayrollDB().getConnection();
 			connection.setAutoCommit(false);
 			Statement statement = connection.createStatement();
-			List<EmployeePayrollData> list = this.readData();
-			boolean toInsert = true;
-			for (EmployeePayrollData e : list) {
-				if (e.getComp_id() == comp_id) {
-					toInsert = false;
-					break;
+			List<Integer> company_id_list = new ArrayList<>();
+			if (employeeList != null) {
+				String sql = "select * from company";
+				ResultSet resultSet = statement.executeQuery(sql);
+				while (resultSet.next()) {
+					Integer value = resultSet.getInt("comp_id");
+					company_id_list.add(value);
 				}
 			}
+			boolean toInsert = true;
+			if (company_id_list.contains(comp_id))
+				toInsert = false;
 			if (toInsert) {
 				String sql_company = String.format("insert into company values (%s, '%s')", comp_id, comp_name);
 				statement.executeUpdate(sql_company);
@@ -239,17 +249,14 @@ public class EmployeePayrollServiceDB {
 		 */
 		try {
 			Statement statement = connection.createStatement();
-			List<EmployeePayrollData> list = this.readData();
-			Integer[] dept;
 			List<Integer> dept_idList = new ArrayList<>();
-			if (list != null) {
+			if (employeeList != null) {
 				String sql = "select * from department";
 				ResultSet resultSet = statement.executeQuery(sql);
 				while (resultSet.next()) {
 					Integer d_id = resultSet.getInt("dept_id");
 					dept_idList.add(d_id);
 				}
-				dept = dept_idList.toArray(new Integer[0]);
 			}
 
 			for (int index = 0; index < dept_id.length; index++) {
@@ -277,9 +284,8 @@ public class EmployeePayrollServiceDB {
 			Statement statement_employee = connection.createStatement();
 			String sql = String.format("insert into employee"
 					+ "(comp_id,emp_id,name,gender,phone_number,address,date_of_joining) values (%s,%s,'%s',"
-					+ "'%s','%s','%s',date(now()))", 
-					comp_id, id, name, gender, phone_no, address);
-			int rowAffected = statement_employee.executeUpdate(sql, statement_employee.RETURN_GENERATED_KEYS);
+					+ "'%s','%s','%s',date(now()))", comp_id, id, name, gender, phone_no, address);
+			statement_employee.executeUpdate(sql, statement_employee.RETURN_GENERATED_KEYS);
 		} catch (SQLException e) {
 			try {
 				connection.rollback();
@@ -300,13 +306,7 @@ public class EmployeePayrollServiceDB {
 				taxable_pay, tax, net_pay);
 		try {
 			Statement statement_salary = connection.createStatement();
-			int rowAffected = statement_salary.executeUpdate(sql_salary, statement_salary.RETURN_GENERATED_KEYS);
-			if (rowAffected == 1) {
-				ResultSet resultSet = statement_salary.getGeneratedKeys();
-				if (resultSet.next())
-					employeeId = resultSet.getInt(2);
-				employeePayrollData = new EmployeePayrollData(employeeId, name, salary);
-			}
+			statement_salary.executeUpdate(sql_salary);
 		} catch (SQLException e) {
 			try {
 				connection.rollback();
@@ -339,6 +339,7 @@ public class EmployeePayrollServiceDB {
 		 */
 		try {
 			connection.commit();
+			System.out.println("\n" + name + " added !!");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {

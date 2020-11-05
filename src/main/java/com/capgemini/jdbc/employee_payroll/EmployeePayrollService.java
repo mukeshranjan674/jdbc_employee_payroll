@@ -24,6 +24,7 @@ public class EmployeePayrollService {
 	 * @throws DBException
 	 */
 	public List<EmployeePayrollData> readEmployeePayrollData(IOService dBService) throws DBException {
+		EmployeePayrollServiceDB.getInstance().loadData();
 		if (dBService.equals(IOService.DB_IO)) {
 			try {
 				this.employeePayrollList = EmployeePayrollServiceDB.getInstance().readData();
@@ -137,7 +138,6 @@ public class EmployeePayrollService {
 				.orElse(null);
 		if (data != null)
 			result = true;
-		System.out.println(employeePayrollDatas);
 		return result;
 	}
 
@@ -151,5 +151,23 @@ public class EmployeePayrollService {
 		if (!this.checkInSyncWithDatabase(name))
 			throw new DBException("employee not found", Type.EMPLOYEE_NOT_FOUND);
 		EmployeePayrollServiceDB.getInstance().removeEmployee(name);
+	}
+
+	/**
+	 * UC1_Thread
+	 * 
+	 * @param employeeList
+	 */
+	public void addEmployees(List<EmployeePayrollData> employeeList) {
+		for (EmployeePayrollData employee : employeeList) {
+			try {
+				this.addNewEmployee(employee.getEmp_id(), employee.getName(), employee.getGender().charAt(0),
+						employee.getPhone_no(), employee.getAddress(), Date.valueOf(employee.getStart_date()),
+						employee.getSalary(), employee.getCompany_name(), employee.getComp_id(),
+						employee.getDepartment(), employee.getDept_id());
+			} catch (DBException e1) {
+				System.out.println(e1.getMessage());
+			}
+		}
 	}
 }
