@@ -354,6 +354,39 @@ public class EmployeePayrollServiceDB {
 	}
 
 	/**
+	 * UC1_Thread
+	 * 
+	 * @param employeePayrollList
+	 */
+	public void addEmployees(List<EmployeePayrollData> employeePayrollList) {
+		Map<Integer, Boolean> employeeStatus = new HashMap<>();
+		for (EmployeePayrollData employee : employeePayrollList) {
+			Runnable task = () -> {
+				employeeStatus.put(employee.hashCode(), false);
+				try {
+					this.addNewEmployee(employee.getEmp_id(), employee.getName(), employee.getGender().charAt(0),
+							employee.getPhone_no(), employee.getAddress(), Date.valueOf(employee.getStart_date()),
+							employee.getSalary(), employee.getCompany_name(), employee.getComp_id(),
+							employee.getDepartment(), employee.getDept_id());
+					employeeStatus.put(employee.hashCode(), true);
+				} catch (DBException e1) {
+					System.out.println(e1.getMessage());
+				}
+				employeeStatus.put(employee.hashCode(), true);
+			};
+			Thread thread = new Thread(task, employee.getName());
+			thread.start();
+		}
+		while (employeeStatus.containsValue(false)) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
 	 * UC12
 	 * 
 	 * @param name

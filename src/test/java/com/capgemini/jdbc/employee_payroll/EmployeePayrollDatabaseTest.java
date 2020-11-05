@@ -167,31 +167,40 @@ public class EmployeePayrollDatabaseTest {
 		} catch (DBException e) {
 		}
 	}
-	
+
+	/**
+	 * Array Of Employees
+	 * 
+	 * @return
+	 */
+	public EmployeePayrollData[] getArrayOfEmployees() {
+		Date[] dates = { Date.valueOf("2020-01-01"), Date.valueOf("2019-12-01"), Date.valueOf("2019-08-31") };
+		String[] department_1 = { "Sales" };
+		String[] department_2 = { "Sales", "Marketing" };
+		String[] department_3 = { "Sales", "Marketing", "Accounts" };
+		int[] dept_id_1 = { 1 };
+		int[] dept_id_2 = { 1, 2 };
+		int[] dept_id_3 = { 1, 2, 3 };
+		EmployeePayrollData[] arrOfEmp = {
+				new EmployeePayrollData(1004, "Rohan", 'M', "Jharkhand 898985", "8585656235", 5200000.0, dates[0],
+						"Microsoft", 112, department_1, dept_id_1),
+				new EmployeePayrollData(1005, "Mohan", 'M', "Dhanbad 898989", "98778585458", 2100000.0, dates[1],
+						"Capgemini", 111, department_2, dept_id_2),
+				new EmployeePayrollData(1006, "Chandan", 'M', "Dhanbad 898989", "98778585458", 100000.0, dates[2],
+						"Capgemini", 112, department_3, dept_id_3) };
+		return arrOfEmp;
+	}
+
 	/**
 	 * UC1_Thread
 	 */
 	@Test
 	public void given3EmployeesShouldGetAddedToTheDatabase() {
-		Date[] dates = {Date.valueOf("2020-01-01"), Date.valueOf("2019-12-01"), Date.valueOf("2019-08-31")};
-		String[] department_1 = {"Sales"};
-		String[] department_2 = {"Sales", "Marketing"};
-		String[] department_3 = {"Sales","Marketing","Accounts"};
-		int[] dept_id_1 = {1};
-		int[] dept_id_2 = {1,2};
-		int[] dept_id_3 = {1,2,3};
-		EmployeePayrollData[] arrOfEmp = {
-				new EmployeePayrollData(1004, "Rohan", 'M', "Jharkhand 898985", "8585656235", 5200000.0, dates[0], 
-										"Microsoft", 112, department_1, dept_id_1),
-				new EmployeePayrollData(1005, "Mohan", 'M', "Dhanbad 898989", "98778585458", 2100000.0, dates[1], 
-										"Capgemini", 111, department_2, dept_id_2),
-				new EmployeePayrollData(1006, "Chandan", 'M', "Dhanbad 898989", "98778585458", 100000.0, dates[2], 
-										"Capgemini", 112, department_3, dept_id_3)
-		};
+		EmployeePayrollData[] arrOfEmp = this.getArrayOfEmployees();
 		Instant start = Instant.now();
 		employeePayrollService.addEmployees(Arrays.asList(arrOfEmp));
 		Instant end = Instant.now();
-		System.out.println("Time taken without thread : " + Duration.between(start, end));
+		System.out.println("Duration without thread : " + Duration.between(start, end));
 		List<EmployeePayrollData> employeePayrollDatas;
 		try {
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
@@ -199,4 +208,23 @@ public class EmployeePayrollDatabaseTest {
 		} catch (DBException e) {
 		}
 	}
+
+	/**
+	 * UC2_Thread
+	 */
+	@Test
+	public void given3EmployeesShouldGetAddedToTheDatabaseWihtThreads() {
+		EmployeePayrollData[] arrOfEmp = this.getArrayOfEmployees();
+		Instant start_thread = Instant.now();
+		employeePayrollService.addEmployeesWihtThreads(Arrays.asList(arrOfEmp));
+		Instant end_thread = Instant.now();
+		System.out.println("Duration with thread : " + Duration.between(start_thread, end_thread));
+		List<EmployeePayrollData> employeePayrollDatas;
+		try {
+			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
+			assertEquals(5, employeePayrollDatas.size());
+		} catch (DBException e) {
+		}
+	}
+
 }

@@ -170,4 +170,13 @@ public class EmployeePayrollService {
 			}
 		}
 	}
+
+	/**
+	 * UC2_Thread
+	 * 
+	 * @param employeePayrollList
+	 */
+	public void addEmployeesWihtThreads(List<EmployeePayrollData> employeePayrollList) {
+		EmployeePayrollServiceDB.getInstance().addEmployees(employeePayrollList);
+	}
 }
