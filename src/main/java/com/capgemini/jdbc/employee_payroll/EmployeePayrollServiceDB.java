@@ -27,13 +27,6 @@ public class EmployeePayrollServiceDB {
 		return employeePayrollServiceDB;
 	}
 
-	public void loadData() {
-		try {
-			this.employeeList = this.readData();
-		} catch (SQLException e) {
-		}
-	}
-
 	/**
 	 * UC2
 	 * 
@@ -41,7 +34,7 @@ public class EmployeePayrollServiceDB {
 	 * @throws SQLException
 	 */
 	public List<EmployeePayrollData> readData() throws SQLException {
-		String sql = "select a.emp_id, a.comp_id, a.name, a.gender, a.address, a.phone_number,a.date_of_joining, b.net_pay "
+		String sql = "select a.emp_id, a.comp_id, a.name, a.gender, a.address, a.phone_number,a.date_of_joining, b.basic_pay "
 				+ "from employee a, payroll b where a.emp_id = b.emp_id and a.is_active = true";
 		Connection connection = new EmployeePayrollDB().getConnection();
 		Statement statement = connection.createStatement();
@@ -49,22 +42,51 @@ public class EmployeePayrollServiceDB {
 		return this.getEmployeePayrollData(resultSet);
 	}
 
+	public void loadData() {
+		try {
+			this.employeeList = this.readData();
+		} catch (SQLException e) {
+		}
+	}
+	
 	/**
 	 * UC3
 	 * 
 	 * @param sql
+	 * @throws DBException
 	 * @throws SQLException
 	 */
-	public void updateData(String sql) throws SQLException {
-		Connection connection = new EmployeePayrollDB().getConnection();
-		Statement statement = connection.createStatement();
-		statement.execute(sql);
+	public void updateData(String name, double salary) throws DBException {
+		String sql = this.getSQLStatement(name, salary);
+		try {
+			Connection connection = new EmployeePayrollDB().getConnection();
+			Statement statement = connection.createStatement();
+			statement.execute(sql);
+		} catch (SQLException e) {
+			throw new DBException("Employee not found ", Type.EMPLOYEE_NOT_FOUND);
+		}
 	}
 
-	public void updateDataUsingPrepared(String sql) throws SQLException {
-		Connection connection = new EmployeePayrollDB().getConnection();
-		PreparedStatement preparedStatement = connection.prepareStatement(sql);
-		preparedStatement.executeUpdate();
+	public void updateDataUsingPrepared(String name, double salary) throws DBException {
+		try {
+			String sql = this.getSQLStatement(name, salary);
+			Connection connection = new EmployeePayrollDB().getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(sql);
+			preparedStatement.executeUpdate();
+		} catch (SQLException e) {
+			throw new DBException("Employee not found ", Type.EMPLOYEE_NOT_FOUND);
+		}
+	}
+	
+	public String getSQLStatement(String name, double salary) {
+		double deductions = salary * 0.2;
+		double taxable_pay = salary - deductions;
+		double tax = taxable_pay * 0.1;
+		double net_pay = taxable_pay - tax;
+		String sql = String.format("update payroll set basic_pay = %s, deductions = %s, "
+				+ "taxable_pay = %s, tax = %s, net_pay = %s where emp_id = (select emp_id from "
+				+ "employee where name = '%s')", salary,deductions, taxable_pay, tax, net_pay, name);
+		return sql;
 	}
 
 	/**
@@ -92,7 +114,7 @@ public class EmployeePayrollServiceDB {
 	 * @throws SQLException
 	 */
 	public List<EmployeePayrollData> readData(Date date) throws SQLException {
-		String sql = "select a.emp_id, a.comp_id, a.name, a.gender, a.address, a.phone_number,a.date_of_joining, b.net_pay "
+		String sql = "select a.emp_id, a.comp_id, a.name, a.gender, a.address, a.phone_number,a.date_of_joining, b.basic_pay "
 				+ "from employee a, payroll b where date_of_joining between date('" + date + "') and date(now()) and "
 				+ "a.emp_id = b.emp_id and a.is_active = true";
 
@@ -103,7 +125,7 @@ public class EmployeePayrollServiceDB {
 	}
 
 	private void getPreparedStatement(String name) {
-		String sql = "select a.emp_id, a.comp_id, a.name, a.gender, a.address, a.phone_number,a.date_of_joining, b.net_pay "
+		String sql = "select a.emp_id, a.comp_id, a.name, a.gender, a.address, a.phone_number,a.date_of_joining, b.basic_pay "
 				+ "from employee a, payroll b where a.name = '" + name + "' and "
 				+ "a.emp_id = b.emp_id and a.is_active = true";
 		Connection connection = new EmployeePayrollDB().getConnection();
@@ -120,7 +142,7 @@ public class EmployeePayrollServiceDB {
 				int id = resultSet.getInt("emp_id");
 				int comp_id = resultSet.getInt("comp_id");
 				String name = resultSet.getString("name");
-				double salary = resultSet.getDouble("net_pay");
+				double salary = resultSet.getDouble("basic_pay");
 				String address = resultSet.getString("address");
 				String phone_no = resultSet.getString("phone_number");
 				String gender = resultSet.getString("gender");
@@ -163,16 +185,16 @@ public class EmployeePayrollServiceDB {
 	 */
 	public Map<String, Map<Character, Double>> getDetails() throws SQLException {
 		Map<String, Map<Character, Double>> result = new HashMap<String, Map<Character, Double>>();
-		String sql_sum = "select a.gender, sum(b.net_pay) from employee a, payroll b "
+		String sql_sum = "select a.gender, sum(b.basic_pay) from employee a, payroll b "
 				+ "where a.emp_id = b.emp_id group by gender";
 		result.put("sum", getMap(sql_sum));
-		String sql_avg = "select a.gender, avg(b.net_pay) from employee a, payroll b"
+		String sql_avg = "select a.gender, avg(b.basic_pay) from employee a, payroll b"
 				+ " where a.emp_id = b.emp_id group by gender";
 		result.put("avg", getMap(sql_avg));
-		String sql_min = "select a.gender, min(b.net_pay) from employee a, payroll b"
+		String sql_min = "select a.gender, min(b.basic_pay) from employee a, payroll b"
 				+ " where a.emp_id = b.emp_id group by gender";
 		result.put("min", getMap(sql_min));
-		String sql_max = "select a.gender, max(b.net_pay) from employee a, payroll b"
+		String sql_max = "select a.gender, max(b.basic_pay) from employee a, payroll b"
 				+ " where a.emp_id = b.emp_id group by gender";
 		result.put("max", getMap(sql_max));
 		String sql_count = "select gender, count(gender) from employee group by gender";
@@ -210,8 +232,8 @@ public class EmployeePayrollServiceDB {
 	 * @return
 	 * @throws DBException
 	 */
-	public synchronized EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no, String address,
-			Date date, double salary, String comp_name, int comp_id, String[] department, int[] dept_id)
+	public synchronized EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no,
+			String address, Date date, double salary, String comp_name, int comp_id, String[] department, int[] dept_id)
 			throws DBException {
 		EmployeePayrollData employeePayrollData = null;
 		Connection connection = null;
@@ -392,15 +414,45 @@ public class EmployeePayrollServiceDB {
 	 * UC12
 	 * 
 	 * @param name
+	 * @throws DBException
 	 */
-	public void removeEmployee(String name) {
+	public void removeEmployee(String name) throws DBException {
 		String sql = String.format("update employee set is_active = %s where name = '%s'", false, name);
 		Connection connection = new EmployeePayrollDB().getConnection();
 		try {
 			Statement statement = connection.createStatement();
 			statement.execute(sql);
 		} catch (SQLException e) {
+			throw new DBException("Employee not found ", Type.EMPLOYEE_NOT_FOUND);
 		}
+	}
 
+	/**
+	 * UC_Thread
+	 * 
+	 * @param empSalaryMap
+	 */
+	public void updateMultiple(Map<String, Double> empSalaryMap) {
+		Map<String, Boolean> employeeStatus = new HashMap<>();
+		empSalaryMap.forEach((name, salary) -> {
+			Runnable task = () -> {
+				employeeStatus.put(name, false);
+				try {
+					this.updateData(name, salary);
+				} catch (DBException e) {
+				}
+				employeeStatus.put(name, true);
+			};
+			Thread thread = new Thread(task, name);
+			thread.setPriority(10);
+			thread.start();
+		});
+		while (employeeStatus.containsValue(false)) {
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

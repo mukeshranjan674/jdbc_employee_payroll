@@ -58,29 +58,17 @@ public class EmployeePayrollService {
 	 * @throws DBException
 	 */
 	public void updateEmployeePayrollData(String name, double salary) throws DBException {
-		String sql = "update payroll set net_pay = " + salary
-				+ " where emp_id = (select emp_id from employee where name = '" + name + "')";
-		this.updateEmployeePayrollData(sql);
-	}
-
-	private void updateEmployeePayrollData(String sql) throws DBException {
-		try {
-			EmployeePayrollServiceDB.getInstance().updateData(sql);
-		} catch (SQLException e) {
-			throw new DBException("Unable to read", Type.WRONG_QUERY);
-		}
+		EmployeePayrollServiceDB.getInstance().updateData(name, salary);
 	}
 
 	public void updateDataUsingPrepared(String name, double salary) throws DBException {
-		String sql = "update payroll set net_pay = " + salary
-				+ " where emp_id = (select emp_id from employee where name = '" + name + "')";
-		try {
-			EmployeePayrollServiceDB.getInstance().updateDataUsingPrepared(sql);
-		} catch (SQLException e) {
-			throw new DBException("Unable to read", Type.WRONG_QUERY);
-		}
+		EmployeePayrollServiceDB.getInstance().updateDataUsingPrepared(name, salary );
 	}
 
+	public void updateMultipleEmployees(Map<String, Double> empSalaryMap) {
+		EmployeePayrollServiceDB.getInstance().updateMultiple(empSalaryMap);
+	}
+	
 	/**
 	 * UC5
 	 * 
@@ -131,10 +119,12 @@ public class EmployeePayrollService {
 				comp_name, comp_id, department, dept_id);
 	}
 
-	public boolean checkInSyncWithDatabase(String name) throws DBException {
+	public boolean checkInSyncWithDatabase(String name, double salary) throws DBException {
 		boolean result = false;
 		List<EmployeePayrollData> employeePayrollDatas = this.readEmployeePayrollData(IOService.DB_IO);
-		EmployeePayrollData data = employeePayrollDatas.stream().filter(n -> n.getName().equals(name)).findAny()
+		EmployeePayrollData data = employeePayrollDatas.stream()
+				.filter(n -> n.getName().equals(name) && n.getSalary() == salary)
+				.findAny()
 				.orElse(null);
 		if (data != null)
 			result = true;
@@ -148,8 +138,6 @@ public class EmployeePayrollService {
 	 * @throws DBException
 	 */
 	public void removeEmployee(String name) throws DBException {
-		if (!this.checkInSyncWithDatabase(name))
-			throw new DBException("employee not found", Type.EMPLOYEE_NOT_FOUND);
 		EmployeePayrollServiceDB.getInstance().removeEmployee(name);
 	}
 

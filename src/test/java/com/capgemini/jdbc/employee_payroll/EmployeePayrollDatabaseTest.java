@@ -8,6 +8,7 @@ import java.sql.Date;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ public class EmployeePayrollDatabaseTest {
 		try {
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
 
-			assertEquals(2, employeePayrollDatas.size());
+			assertEquals(5, employeePayrollDatas.size());
 		} catch (DBException e) {
 		}
 	}
@@ -51,7 +52,7 @@ public class EmployeePayrollDatabaseTest {
 		try {
 			employeePayrollService.updateEmployeePayrollData("Sita", 3000000);
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-			boolean result = employeePayrollService.checkInSyncWithDatabase("Sita");
+			boolean result = employeePayrollService.checkInSyncWithDatabase("Sita", 3000000.0);
 			assertTrue(result);
 		} catch (DBException e) {
 		}
@@ -66,7 +67,7 @@ public class EmployeePayrollDatabaseTest {
 		try {
 			employeePayrollService.updateDataUsingPrepared("Sita", 250000);
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-			boolean result = employeePayrollService.checkInSyncWithDatabase("Sita");
+			boolean result = employeePayrollService.checkInSyncWithDatabase("Sita", 250000.0);
 			assertTrue(result);
 		} catch (DBException e) {
 		}
@@ -91,7 +92,7 @@ public class EmployeePayrollDatabaseTest {
 		try {
 			Date date = Date.valueOf("2017-11-10");
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(date);
-			assertEquals(2, employeePayrollDatas.size());
+			assertEquals(5, employeePayrollDatas.size());
 		} catch (DBException e) {
 		}
 	}
@@ -131,7 +132,7 @@ public class EmployeePayrollDatabaseTest {
 		try {
 			EmployeePayrollData employeePayrollData = employeePayrollService.addNewEmployee(1003, "Sita", 'F',
 					"8585656235", "Jharkhand 898985", date, 3000000, "Capgemini", 111, departments, dept_id);
-			result = employeePayrollService.checkInSyncWithDatabase("Sita");
+			result = employeePayrollService.checkInSyncWithDatabase("Sita", 3000000.0);
 			assertTrue(result);
 		} catch (DBException e) {
 		}
@@ -149,7 +150,7 @@ public class EmployeePayrollDatabaseTest {
 		try {
 			EmployeePayrollData employeePayrollData = employeePayrollService.addNewEmployee(1003, "Ram", 'M',
 					"8585656235", "Jharkhand 898985", date, 5200000, "Microsoft", 112, departments, dept_id);
-			result = employeePayrollService.checkInSyncWithDatabase("Lata");
+			result = employeePayrollService.checkInSyncWithDatabase("Ram", 5200000.0);
 			assertTrue(result);
 		} catch (DBException e) {
 		}
@@ -162,8 +163,8 @@ public class EmployeePayrollDatabaseTest {
 	public void givenNameWhenDeletedShouldGetDeletedFromDatabase() {
 		try {
 			employeePayrollService.removeEmployee("Ram");
-			boolean result = employeePayrollService.checkInSyncWithDatabase("Ram");
-			assertFalse(result);
+			List<EmployeePayrollData> employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
+			assertEquals(5, employeePayrollDatas.size());
 		} catch (DBException e) {
 		}
 	}
@@ -223,6 +224,26 @@ public class EmployeePayrollDatabaseTest {
 		try {
 			employeePayrollDatas = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
 			assertEquals(5, employeePayrollDatas.size());
+		} catch (DBException e) {
+		}
+	}
+	
+	/**
+	 * UC5_Thread
+	 */
+	@Test
+	public void givenEmployessNameAndSalaryShouldGetUpdatedInDatabase() {
+		Map<String, Double> empSalaryMap = new HashMap<String, Double>();
+		empSalaryMap.put("Rohan", 9000000.0);
+		empSalaryMap.put("Chandan", 8987455.0);
+		Instant start = Instant.now();
+		employeePayrollService.updateMultipleEmployees(empSalaryMap);
+		Instant end = Instant.now();
+		System.out.println("Duration without thread : " + Duration.between(start, end));
+		boolean result;
+		try {
+			result = employeePayrollService.checkInSyncWithDatabase("Rohan", 9000000.0);
+			assertTrue(result);
 		} catch (DBException e) {
 		}
 	}
