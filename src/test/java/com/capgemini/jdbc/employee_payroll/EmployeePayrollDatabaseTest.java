@@ -210,7 +210,7 @@ public class EmployeePayrollDatabaseTest {
 	}
 
 	/**
-	 * UC2_Thread
+	 * UC2_Thread UC3_Thread
 	 */
 	@Test
 	public void given3EmployeesShouldGetAddedToTheDatabaseWihtThreads() {

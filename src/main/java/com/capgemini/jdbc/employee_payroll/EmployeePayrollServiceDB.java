@@ -210,7 +210,7 @@ public class EmployeePayrollServiceDB {
 	 * @return
 	 * @throws DBException
 	 */
-	public EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no, String address,
+	public synchronized EmployeePayrollData addNewEmployee(int id, String name, char gender, String phone_no, String address,
 			Date date, double salary, String comp_name, int comp_id, String[] department, int[] dept_id)
 			throws DBException {
 		EmployeePayrollData employeePayrollData = null;
@@ -287,6 +287,7 @@ public class EmployeePayrollServiceDB {
 					+ "'%s','%s','%s',date(now()))", comp_id, id, name, gender, phone_no, address);
 			statement_employee.executeUpdate(sql, statement_employee.RETURN_GENERATED_KEYS);
 		} catch (SQLException e) {
+			System.err.println("Insertion Error !!");
 			try {
 				connection.rollback();
 			} catch (SQLException e1) {
@@ -375,11 +376,12 @@ public class EmployeePayrollServiceDB {
 				employeeStatus.put(employee.hashCode(), true);
 			};
 			Thread thread = new Thread(task, employee.getName());
+			thread.setPriority(10);
 			thread.start();
 		}
 		while (employeeStatus.containsValue(false)) {
 			try {
-				Thread.sleep(10);
+				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
